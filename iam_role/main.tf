@@ -1,11 +1,11 @@
 variable "name" {}
-variable "policy" {}
 variable "identifier" {}
+variable "policy" {}
 
 // "aws_iam_role" defines IAM role.
 resource "aws_iam_role" "default" {
   name               = var.name
-  assume_role_poricy = data.aws_iam_policy_document.assume_role.json
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
 // "aws_iam_policy_document" defines an assume policy.
