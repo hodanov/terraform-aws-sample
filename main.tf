@@ -20,3 +20,7 @@ data "aws_iam_policy_document" "allow_describe_regions" {
 module "create_s3_buckets" {
   source = "./s3"
 }
+
+module "build_vpc_nw_and_security_grp" {
+  source = "./network"
+}
