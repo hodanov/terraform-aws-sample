@@ -13,7 +13,7 @@ resource "aws_lb" "example" {
   load_balancer_type         = "application"
   internal                   = false
   idle_timeout               = 60
-  enable_deletion_protection = true
+  enable_deletion_protection = false
 
   // Specify public subnets in network.tf.
   subnets = [
