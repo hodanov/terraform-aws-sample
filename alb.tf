@@ -90,3 +90,101 @@ resource "aws_lb_listener" "http" {
     }
   }
 }
+
+/*
+---------------
+Request forwarding
+---------------
+*/
+
+// "aws_lb_target_group" defines what ALB forwards the request to.
+// Here, this will be associated with the service of ECS.
+resource "aws_lb_target_group" "example" {
+  // "target_type" specifies EC2 instance, IP address(ECS Fargate), Lambda function, etc.
+  // Defines vpc_id, port and protocol if specifying "ip" at target_type.
+  // "deregistration_delay" defines the time that ALB waits before the deregistration of the target.
+  name                 = "example"
+  target_type          = "ip"
+  vpc_id               = aws_vpc.example.id
+  port                 = 80
+  protocol             = "HTTP"
+  deregistration_delay = 300
+
+  health_check {
+    path                = "/" // The path used for health check.
+    healthy_threshold   = 5   // Number of health check executions before it is judged as normal.
+    unhealthy_threshold = 2   // Number of health check executions before it is judged as error.
+    timeout             = 5   // Timeout value(s)
+    interval            = 30  // Execution interval(s)
+    matcher             = 200 // HTTP status code used to determine normality.
+    port                = "traffic-port"
+    protocol            = "HTTP"
+  }
+
+  depends_on = [aws_lb.example]
+}
+
+// "aws_lb_listener_rule" forwards the request to target_group.
+resource "aws_lb_listener_rule" "example" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 100 // The lower the number, the higher the priority.
+
+  // "action" defines the target group of the request destination.
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.example.arn
+  }
+
+  // "condition" specifies the condition.
+  // "/*" matches on all paths.
+  condition {
+    field  = "path-pattern"
+    values = ["/*"]
+  }
+}
+
+/*
+---------------
+Route53
+---------------
+*/
+
+// Define the below when using DNS.
+// resource "aws_route53_zone" "test_example" {
+//   name = "test.example.com"
+// }
+//
+// data "aws_route53_record" "example" {
+//   zone_id = data.aws_route53_zone.example.zone_id
+//   name    = data.aws_route53_zone.example.name
+//   type    = "A"
+//
+//   alias {
+//     name                   = aws_lb.example.dns_name
+//     zone_id                = aws_lb.example.zone_id
+//     evaluate_target_health = true
+//   }
+// }
+//
+// output "domain_name" {
+//   value = aws_route53_record.example.name
+// }
+
+/*
+---------------
+ACM...AWS Certificate Manager
+---------------
+*/
+
+// Define the below when using ACM.
+// resource "aws_acm_certificate" "example" {
+//   // "subject_alternative_names" add sub domain.
+//   // "validation_method" defines how to verify domain ownership.
+//   domain_name               = aws_route53_record.example.name
+//   subject_alternative_names = []
+//   validation_method         = "DNS"
+//
+//   lifecycle {
+//     create_before_destroy = true
+//   }
+// }
