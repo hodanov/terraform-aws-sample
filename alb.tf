@@ -138,8 +138,11 @@ resource "aws_lb_listener_rule" "example" {
   // "condition" specifies the condition.
   // "/*" matches on all paths.
   condition {
-    field  = "path-pattern"
-    values = ["/*"]
+    # field  = "path-pattern"
+    # values = ["*"]
+    path_pattern {
+      values = ["*"]
+    }
   }
 }
 
